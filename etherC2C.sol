@@ -13,7 +13,7 @@ contract EtherC2C is Ownable {
         uint256 oType;
         string info;
         address token;
-        //1 active 2 deposited 3 inactive
+        //1 active 2 deposited 3 paid 4 inactive
         uint256 status;
         address buyer;
         address seller;
@@ -85,14 +85,30 @@ contract EtherC2C is Ownable {
         orders[_id].status = 2;
     }
 
-    function confirmOrder(uint256 _id) external {
+    function pay(uint256 _id) external {
         require(orders[_id].status == 2);
-        require(orders[_id].buyer == msg.sender);
-
         orders[_id].status = 3;
+        orders[_id].buyer = msg.sender;
+    }
+
+    function confirmOrder(uint256 _id) external {
+        require(orders[_id].status == 3);
+        require(orders[_id].seller == msg.sender);
+
+        orders[_id].status = 4;
+        if (orders[_id].oType == 1 || orders[_id].oType == 3) {
+            payable(orders[_id].buyer).transfer(orders[_id].amount);
+        }
+
+        if (orders[_id].oType == 2 || orders[_id].oType == 4) {
+            IERC20(orders[_id].token).transfer(
+                orders[_id].buyer,
+                orders[_id].amount
+            );
+        }
     }
 
     function judgment(uint256 _id) external onlyOwner {
-        orders[_id].status = 3;
+        orders[_id].status = 4;
     }
 }
