@@ -1,8 +1,9 @@
 pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract EtherC2C {
+contract EtherC2C is Ownable {
     uint256 id;
 
     struct Order {
@@ -14,6 +15,8 @@ contract EtherC2C {
         address token;
         //1 active 2 deposited 3 inactive
         uint256 status;
+        address buyer;
+        address seller;
     }
 
     mapping(uint256 => Order) public orders;
@@ -40,7 +43,9 @@ contract EtherC2C {
             oType: _oType,
             info: _info,
             token: _token,
-            status: 1
+            status: 1,
+            buyer: _oType == 1 || _oType == 2 ? msg.sender : address(0),
+            seller: _oType == 3 || _oType == 4 ? msg.sender : address(0)
         });
 
         emit CreateOrder(id, msg.sender, _amount, _oType, _info, _token);
@@ -53,17 +58,18 @@ contract EtherC2C {
         orders[_id].status = 3;
     }
 
-    function depositETH(uint256 _id) external payable {
+    function depositETH(uint256 _id) public payable {
         require(orders[_id].amount == msg.value);
         require(orders[_id].oType == 1 || orders[_id].oType == 3);
         require(orders[_id].status == 1);
         if (orders[_id].oType == 1) {
             require(orders[_id].owner == msg.sender);
         }
+        orders[_id].seller = msg.sender;
         orders[_id].status = 2;
     }
 
-    function depositToken(uint256 _id, uint256 _amount) external {
+    function depositToken(uint256 _id, uint256 _amount) public {
         require(orders[_id].amount == _amount);
         require(orders[_id].oType == 2 || orders[_id].oType == 4);
         require(orders[_id].status == 1);
@@ -75,12 +81,18 @@ contract EtherC2C {
             address(this),
             _amount
         );
+        orders[_id].seller = msg.sender;
         orders[_id].status = 2;
     }
 
     function confirmOrder(uint256 _id) external {
         require(orders[_id].status == 2);
+        require(orders[_id].buyer == msg.sender);
 
+        orders[_id].status = 3;
+    }
+
+    function judgment(uint256 _id) external onlyOwner {
         orders[_id].status = 3;
     }
 }
