@@ -5,6 +5,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 contract EtherC2C {
     uint256 id;
 
+   enum Staus{ SELLETH, SELLTOKEN, BUYETH,BUYTOKEN }
     struct Order {
         address owner;
         uint256 amount;
@@ -57,6 +58,9 @@ contract EtherC2C {
         require(orders[_id].amount == msg.value);
         require(orders[_id].oType == 1 || orders[_id].oType == 3);
         require(orders[_id].status == 1);
+        if (orders[_id].oType == 1) {
+            require(orders[_id].owner == msg.sender);
+        }
         orders[_id].status = 2;
     }
 
@@ -64,11 +68,20 @@ contract EtherC2C {
         require(orders[_id].amount == _amount);
         require(orders[_id].oType == 2 || orders[_id].oType == 4);
         require(orders[_id].status == 1);
+        if (orders[_id].oType == 2) {
+            require(orders[_id].owner == msg.sender);
+        }
         IERC20(orders[_id].token).transferFrom(
             msg.sender,
             address(this),
             _amount
         );
         orders[_id].status = 2;
+    }
+
+    function confirmOrder(uint256 _id) external {
+        require(orders[_id].status == 2);
+
+        orders[_id].status = 3;
     }
 }
