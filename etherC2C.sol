@@ -58,7 +58,7 @@ contract EtherC2C is Ownable {
         orders[_id].status = 3;
     }
 
-    function depositETH(uint256 _id) public payable {
+    function stakeETH(uint256 _id) public payable {
         require(orders[_id].amount == msg.value);
         require(orders[_id].oType == 1 || orders[_id].oType == 3);
         require(orders[_id].status == 1);
@@ -69,7 +69,7 @@ contract EtherC2C is Ownable {
         orders[_id].status = 2;
     }
 
-    function depositToken(uint256 _id, uint256 _amount) public {
+    function stakeToken(uint256 _id, uint256 _amount) public {
         require(orders[_id].amount == _amount);
         require(orders[_id].oType == 2 || orders[_id].oType == 4);
         require(orders[_id].status == 1);
