@@ -5,7 +5,6 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 contract EtherC2C {
     uint256 id;
 
-   enum Staus{ SELLETH, SELLTOKEN, BUYETH,BUYTOKEN }
     struct Order {
         address owner;
         uint256 amount;
